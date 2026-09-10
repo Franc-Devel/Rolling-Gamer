@@ -51,3 +51,47 @@ export const guardarProductos = (productos) => {
     console.error("Error al guardar productos en localStorage:", error);
   }
 };
+
+/**
+ * Busca un producto en el catálogo persistente mediante su identificador.
+ *
+ * @param {string} id Identificador único del videojuego
+ * @returns {Object|null} El producto coincidente o null si no se encuentra
+ */
+export const buscarProducto = (id) => {
+  if (!id) return null;
+  const productos = obtenerProductos();
+  const productoEncontrado = productos.find((item) => String(item.id) === String(id));
+  return productoEncontrado ? { ...productoEncontrado } : null;
+};
+
+/**
+ * Crea un nuevo videojuego en el catálogo persistente asignando ID y estructura base.
+ *
+ * @param {Object} nuevoProducto Datos del videojuego a dar de alta
+ * @returns {Object} El videojuego creado y persistido
+ */
+export const crearProducto = (nuevoProducto) => {
+  if (!nuevoProducto || typeof nuevoProducto !== "object") {
+    throw new Error("Datos inválidos para la creación del videojuego.");
+  }
+
+  const productosActuales = obtenerProductos();
+  const nuevoId = nuevoProducto.id || `game-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+
+  const productoListo = {
+    ...nuevoProducto,
+    id: String(nuevoId),
+    precio: Number(nuevoProducto.precio) || 0,
+    descuento: Number(nuevoProducto.descuento) || 0,
+    destacado: Boolean(nuevoProducto.destacado),
+    resenas: Array.isArray(nuevoProducto.resenas) ? nuevoProducto.resenas : [],
+    fechaLanzamiento: nuevoProducto.fechaLanzamiento || new Date().toISOString().split("T")[0]
+  };
+
+  const listaActualizada = [productoListo, ...productosActuales];
+  guardarProductos(listaActualizada);
+
+  return productoListo;
+};
+
