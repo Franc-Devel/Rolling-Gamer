@@ -6,6 +6,14 @@ export const usuariosIniciales = [
     password: "admin123",
     rol: "admin",
     fechaRegistro: "2025-01-01"
+  },
+  {
+    id: "user-guest-1",
+    nombre: "Franco Triviño",
+    email: "user@rollinggames.com",
+    password: "user123",
+    rol: "usuario",
+    fechaRegistro: "2025-02-15"
   }
 ];
 
