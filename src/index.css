@@ -1,14 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 :root {
-  color-scheme: dark;
-  --bs-body-bg: #0b0e14;
-  --bs-body-color: #f3f4f6;
+  /* Epic Games Official Color Palette */
+  --epic-bg-dark: #121212;
+  --epic-bg-secondary: #18181c;
+  --epic-bg-surface: #202020;
+  --epic-bg-surface-hover: #2a2a2a;
+  --epic-bg-input: #202024;
+  --epic-blue: #0078f2;
+  --epic-blue-hover: #0063c8;
+  --epic-blue-glow: rgba(0, 120, 242, 0.35);
+  --epic-border: rgba(255, 255, 255, 0.08);
+  --epic-border-hover: rgba(255, 255, 255, 0.2);
+  --epic-text-primary: #f5f5f5;
+  --epic-text-secondary: #c4c4c4;
+  --epic-text-muted: #727272;
+  --epic-green: #00df9a;
+  --epic-radius: 6px;
+  --epic-radius-sm: 4px;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: var(--bs-body-bg);
-  color: var(--bs-body-color);
+  background-color: var(--epic-bg-dark);
+  color: var(--epic-text-primary);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 }
