@@ -156,4 +156,56 @@ export const modificarProducto = (productoActualizado) => {
   return productoFusionado;
 };
 
+/**
+ * Agrega una reseña comunitaria al videojuego especificado y actualiza la persistencia.
+ *
+ * @param {string} idJuego Identificador del videojuego sobre el que se opina
+ * @param {Object} nuevaResena Datos de la reseña (usuario, comentario, esPositiva)
+ * @returns {Object} El videojuego con la nueva reseña añadida
+ */
+export const agregarResena = (idJuego, nuevaResena) => {
+  if (!idJuego || !nuevaResena) {
+    throw new Error("Se requiere idJuego y los datos de la reseña.");
+  }
+
+  const productosActuales = obtenerProductos();
+  const indice = productosActuales.findIndex((item) => String(item.id) === String(idJuego));
+
+  if (indice === -1) {
+    throw new Error(`Videojuego no encontrado con ID: ${idJuego}`);
+  }
+
+  const resenaPreparada = {
+    id: nuevaResena.id || `res-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    usuario: nuevaResena.usuario || "Gamer Anónimo",
+    fecha: nuevaResena.fecha || new Date().toISOString().split("T")[0],
+    esPositiva: nuevaResena.esPositiva !== undefined ? Boolean(nuevaResena.esPositiva) : true,
+    comentario: String(nuevaResena.comentario || "").trim()
+  };
+
+  const productoActual = productosActuales[indice];
+  const resenasExistentes = Array.isArray(productoActual.resenas) ? productoActual.resenas : [];
+
+  const productoConResena = {
+    ...productoActual,
+    resenas: [resenaPreparada, ...resenasExistentes]
+  };
+
+  productosActuales[indice] = productoConResena;
+  guardarProductos(productosActuales);
+
+  return productoConResena;
+};
+
+/**
+ * Restaura el catálogo a los datos de fábrica iniciales persistiendo en productosKey.
+ *
+ * @returns {Array<Object>} Lista de videojuegos restaurados
+ */
+export const recargarCatalogoInicial = () => {
+  guardarProductos(juegosIniciales);
+  return [...juegosIniciales];
+};
+
+
 
