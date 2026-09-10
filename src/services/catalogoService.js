@@ -95,3 +95,65 @@ export const crearProducto = (nuevoProducto) => {
   return productoListo;
 };
 
+/**
+ * Elimina un producto del catálogo persistente por su ID.
+ *
+ * @param {string} id Identificador único del videojuego a borrar
+ * @returns {boolean} True si se eliminó, false si no se encontró
+ */
+export const borrarProducto = (id) => {
+  if (!id) return false;
+
+  const productosActuales = obtenerProductos();
+  const productoExiste = productosActuales.some((item) => String(item.id) === String(id));
+
+  if (!productoExiste) {
+    return false;
+  }
+
+  const listaFiltrada = productosActuales.filter((item) => String(item.id) !== String(id));
+  guardarProductos(listaFiltrada);
+
+  return true;
+};
+
+/**
+ * Modifica los datos de un producto existente garantizando la conservación de su ID y sus reseñas.
+ *
+ * @param {Object} productoActualizado Objeto con los nuevos valores del videojuego
+ * @returns {Object} El producto modificado y persistido
+ */
+export const modificarProducto = (productoActualizado) => {
+  if (!productoActualizado || !productoActualizado.id) {
+    throw new Error("Se requiere un producto válido con ID para modificarlo.");
+  }
+
+  const productosActuales = obtenerProductos();
+  const indice = productosActuales.findIndex(
+    (item) => String(item.id) === String(productoActualizado.id)
+  );
+
+  if (indice === -1) {
+    throw new Error(`No se encontró el videojuego con ID: ${productoActualizado.id}`);
+  }
+
+  const productoOriginal = productosActuales[indice];
+
+  // Regla de aceptación: "editar conserva id y reseñas"
+  const productoFusionado = {
+    ...productoOriginal,
+    ...productoActualizado,
+    id: productoOriginal.id, // ID inmutable
+    resenas: Array.isArray(productoOriginal.resenas) ? [...productoOriginal.resenas] : [], // Reseñas conservadas
+    precio: Number(productoActualizado.precio !== undefined ? productoActualizado.precio : productoOriginal.precio) || 0,
+    descuento: Number(productoActualizado.descuento !== undefined ? productoActualizado.descuento : productoOriginal.descuento) || 0,
+    destacado: productoActualizado.destacado !== undefined ? Boolean(productoActualizado.destacado) : productoOriginal.destacado
+  };
+
+  productosActuales[indice] = productoFusionado;
+  guardarProductos(productosActuales);
+
+  return productoFusionado;
+};
+
+
