@@ -347,3 +347,110 @@ main {
   border-color: var(--epic-border-hover);
   color: #ffffff;
 }
+
+/* Epic Input Controls */
+.epic-input {
+  background: var(--epic-bg-input) !important;
+  border: 1px solid var(--epic-border) !important;
+  color: #ffffff !important;
+  border-radius: var(--epic-radius-sm) !important;
+  padding: 0.65rem 1rem !important;
+  font-size: 0.9rem !important;
+  transition: border-color 0.2s ease !important;
+}
+
+.epic-input:focus {
+  border-color: var(--epic-blue) !important;
+  box-shadow: 0 0 0 2px var(--epic-blue-glow) !important;
+  outline: none !important;
+}
+
+.epic-input::placeholder {
+  color: var(--epic-text-muted) !important;
+}
+
+/* Filter Pills */
+.epic-filter-pill {
+  background: transparent;
+  border: none;
+  color: var(--epic-text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.epic-filter-pill:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.epic-filter-pill.active {
+  color: #ffffff;
+  background: var(--epic-bg-surface);
+  border: 1px solid var(--epic-border);
+}
+
+/* Epic Card Container Box */
+.epic-box {
+  background: var(--epic-bg-secondary);
+  border: 1px solid var(--epic-border);
+  border-radius: var(--epic-radius);
+}
+
+/* Epic Specs Table (Dual Column) */
+.epic-specs-col {
+  background: var(--epic-bg-surface);
+  border-radius: var(--epic-radius-sm);
+  padding: 1.25rem;
+  border: 1px solid var(--epic-border);
+}
+
+.epic-specs-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--epic-text-muted);
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--epic-border);
+  padding-bottom: 0.5rem;
+}
+
+/* Tables */
+.epic-table {
+  color: var(--epic-text-primary) !important;
+  background: transparent !important;
+  border-color: var(--epic-border) !important;
+}
+
+.epic-table th {
+  background: #18181c !important;
+  color: var(--epic-text-muted);
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  padding: 0.85rem !important;
+  border-bottom: 1px solid var(--epic-border) !important;
+}
+
+.epic-table td {
+  background: var(--epic-bg-dark) !important;
+  vertical-align: middle;
+  padding: 0.85rem !important;
+  border-bottom: 1px solid var(--epic-border) !important;
+}
+
+.epic-table tr:hover td {
+  background: var(--epic-bg-surface) !important;
+}
+
+/* Footer */
+.epic-footer {
+  background: #121212;
+  border-top: 1px solid var(--epic-border);
+  color: var(--epic-text-muted);
+}
