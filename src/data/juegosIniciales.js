@@ -18,7 +18,9 @@ export const juegosIniciales = [
   crearJuego("game-5", "Resident Evil 4 Remake", 38000, 30, "Terror", "Capcom", "https://images.unsplash.com/photo-1509281373149-e957c6296406?auto=format&fit=crop&w=1200&q=80", true, "Survival horror legendario reimaginado."),
   crearJuego("game-6", "EA Sports FC 24", 36000, 35, "Deportes", "EA Canada", "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&q=80", false, "La nueva era del fútbol mundial con licencias oficiales."),
   crearJuego("game-7", "Age of Empires IV", 28000, 25, "Estrategia", "Relic Entertainment", "https://images.unsplash.com/photo-1618172193763-c511deb635ca?auto=format&fit=crop&w=1200&q=80", false, "Estrategia en tiempo real con batallas históricas."),
-  crearJuego("game-8", "Microsoft Flight Simulator", 32000, 10, "Simulación", "Asobo Studio", "https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=1200&q=80", false, "Simulador de aviación fotorrealista por el mundo.")
+  crearJuego("game-8", "Microsoft Flight Simulator", 32000, 10, "Simulación", "Asobo Studio", "https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=1200&q=80", false, "Simulador de aviación fotorrealista por el mundo."),
+  crearJuego("game-9", "Hollow Knight", 12000, 50, "Indie", "Team Cherry", "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80", false, "Metroidvania 2D desafiante en el reino de Hallownest."),
+  crearJuego("game-10", "Elden Ring", 45000, 20, "Aventura", "FromSoftware", "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80", false, "Mundo abierto de fantasía oscura en las Tierras Intermedias.")
 ];
 
 export default juegosIniciales;
