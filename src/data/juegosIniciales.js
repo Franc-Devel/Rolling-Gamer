@@ -12,7 +12,9 @@ const crearJuego = (id, nombre, precio, descuento, categoria, desarrollador, ima
 
 export const juegosIniciales = [
   crearJuego("game-1", "Cyberpunk 2077", 35000, 25, "RPG", "CD PROJEKT RED", "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80", true, "Aventura de rol y acción futurista en Night City."),
-  crearJuego("game-2", "The Witcher 3: Wild Hunt", 22000, 40, "RPG", "CD PROJEKT RED", "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80", true, "RPG de fantasía oscura y cacería de monstruos.")
+  crearJuego("game-2", "The Witcher 3: Wild Hunt", 22000, 40, "RPG", "CD PROJEKT RED", "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80", true, "RPG de fantasía oscura y cacería de monstruos."),
+  crearJuego("game-3", "Red Dead Redemption 2", 42000, 20, "Acción", "Rockstar Games", "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80", true, "Aventura de forajidos en el salvaje oeste americano."),
+  crearJuego("game-4", "God of War Ragnarök", 48000, 15, "Acción", "Santa Monica Studio", "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=1200&q=80", true, "Viaje mítico nórdico de Kratos y Atreus.")
 ];
 
 export default juegosIniciales;
