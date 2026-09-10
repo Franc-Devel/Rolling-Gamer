@@ -213,3 +213,56 @@ main {
   border-radius: var(--epic-radius-sm);
   border: 1px solid var(--epic-border);
 }
+
+/* Epic Cards */
+.epic-card {
+  background: transparent;
+  border: none;
+  border-radius: var(--epic-radius);
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+
+.epic-card:hover {
+  transform: translateY(-4px);
+}
+
+.epic-card-media {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--epic-radius);
+  overflow: hidden;
+  background: #1e1e1e;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.epic-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 0.2s ease, transform 0.3s ease;
+}
+
+.epic-card:hover .epic-card-media img {
+  filter: brightness(1.08);
+  transform: scale(1.02);
+}
+
+/* Epic Discount Badge */
+.epic-badge-discount {
+  background: var(--epic-blue);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: var(--epic-radius-sm);
+  letter-spacing: 0.2px;
+}
+
+.epic-tag-category {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--epic-text-muted);
+}
