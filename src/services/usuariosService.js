@@ -236,3 +236,61 @@ export const autenticarUsuario = (email, password) => {
     };
   }
 };
+
+/**
+ * Da de baja a un usuario registrado en el sistema.
+ * Impide explícitamente la eliminación de la cuenta que se encuentra actualmente activa.
+ * Tras la baja, una cuenta eliminada queda inhabilitada para iniciar nueva sesión.
+ * @param {string} idAEliminar 
+ * @param {string|null} idUsuarioActivo 
+ * @returns {Object}
+ */
+export const eliminarUsuario = (idAEliminar, idUsuarioActivo = null) => {
+  try {
+    if (!idAEliminar) {
+      return {
+        success: false,
+        exito: false,
+        mensaje: "Identificador de usuario no proporcionado."
+      };
+    }
+
+    // Regla de aceptación: la baja de usuarios impide eliminar la cuenta activa
+    if (idUsuarioActivo && String(idAEliminar) === String(idUsuarioActivo)) {
+      return {
+        success: false,
+        exito: false,
+        mensaje: "No es posible eliminar la cuenta que tiene la sesión activa actualmente."
+      };
+    }
+
+    const usuarios = obtenerUsuarios();
+    const usuarioAEliminar = usuarios.find((u) => String(u.id) === String(idAEliminar));
+
+    if (!usuarioAEliminar) {
+      return {
+        success: false,
+        exito: false,
+        mensaje: "El usuario especificado no existe o ya fue eliminado."
+      };
+    }
+
+    const usuariosFiltrados = usuarios.filter((u) => String(u.id) !== String(idAEliminar));
+    guardarUsuarios(usuariosFiltrados);
+
+    return {
+      success: true,
+      exito: true,
+      usuarioEliminado: sanitizarUsuario(usuarioAEliminar),
+      usuarios: usuariosFiltrados,
+      mensaje: `El usuario "${usuarioAEliminar.nombre}" fue dado de baja exitosamente.`
+    };
+  } catch (error) {
+    console.error("Error al eliminar usuario:", error);
+    return {
+      success: false,
+      exito: false,
+      mensaje: "Ocurrió un error inesperado al eliminar el usuario."
+    };
+  }
+};
