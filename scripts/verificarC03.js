@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /**
  * Script de validación automatizada de los Criterios de Aceptación para la Card C03:
  * 1. Inicialización y persistencia en 'productosKey'
@@ -20,7 +21,6 @@ global.localStorage = {
 import {
   PRODUCTOS_KEY,
   obtenerProductos,
-  guardarProductos,
   crearProducto,
   borrarProducto,
   buscarProducto,
