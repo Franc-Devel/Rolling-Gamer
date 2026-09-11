@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
@@ -17,27 +17,11 @@ const FormularioProducto = () => {
   const { buscarProducto, crearProducto, modificarProducto } = useProductos();
   const { mostrarAlerta } = useUIModal();
 
-  const [formulario, setFormulario] = useState({
-    nombre: "",
-    precio: "",
-    descuento: "0",
-    categoria: "Acción",
-    desarrollador: "",
-    imagen: "",
-    destacado: false,
-    descripcion_breve: "",
-    descripcion_amplia: ""
-  });
-
-  const [errorValidacion, setErrorValidacion] = useState("");
-
-  const categorias = ["RPG", "Acción", "Terror", "Deportes", "Estrategia", "Simulación", "Indie", "Aventura"];
-
-  useEffect(() => {
+  const [formulario, setFormulario] = useState(() => {
     if (esEdicion) {
       const juegoExistente = buscarProducto(id);
       if (juegoExistente) {
-        setFormulario({
+        return {
           nombre: juegoExistente.nombre || "",
           precio: String(juegoExistente.precio || ""),
           descuento: String(juegoExistente.descuento || 0),
@@ -47,12 +31,25 @@ const FormularioProducto = () => {
           destacado: Boolean(juegoExistente.destacado),
           descripcion_breve: juegoExistente.descripcion_breve || "",
           descripcion_amplia: juegoExistente.descripcion_amplia || ""
-        });
-      } else {
-        setErrorValidacion("El videojuego a editar no existe en el catálogo.");
+        };
       }
     }
-  }, [id, esEdicion, buscarProducto]);
+    return {
+      nombre: "",
+      precio: "",
+      descuento: "0",
+      categoria: "Acción",
+      desarrollador: "",
+      imagen: "",
+      destacado: false,
+      descripcion_breve: "",
+      descripcion_amplia: ""
+    };
+  });
+
+  const [errorValidacion, setErrorValidacion] = useState("");
+
+  const categorias = ["RPG", "Acción", "Terror", "Deportes", "Estrategia", "Simulación", "Indie", "Aventura"];
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;

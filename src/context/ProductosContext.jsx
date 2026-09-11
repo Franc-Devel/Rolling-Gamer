@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import {
   obtenerProductos,
@@ -13,20 +14,17 @@ import {
 const ProductosContext = createContext();
 
 export const ProductosProvider = ({ children }) => {
-  const [productos, setProductos] = useState([]);
-  const [cargando, setCargando] = useState(true);
-
-  // Inicializar productos al montar el proveedor
-  useEffect(() => {
+  // Inicialización perezosa de estado según mejores prácticas de React 19
+  const [productos, setProductos] = useState(() => {
     try {
-      const datos = obtenerProductos();
-      setProductos(datos);
+      return obtenerProductos();
     } catch (error) {
-      console.error("Error al cargar productos en el contexto:", error);
-    } finally {
-      setCargando(false);
+      console.error("Error al inicializar productos:", error);
+      return [];
     }
-  }, []);
+  });
+
+  const [cargando] = useState(false);
 
   // Escuchar cambios en otras pestañas o ventanas
   useEffect(() => {

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import usuariosIniciales from "../data/usuariosIniciales.js";
 
@@ -7,27 +8,28 @@ export const USUARIO_KEY = "rollingGamer_usuario";
 export const USUARIOS_REGISTRADOS_KEY = "rollingGamer_usuariosRegistrados";
 
 export const AuthProvider = ({ children }) => {
-  const [usuario, setUsuario] = useState(null);
-  const [cargando, setCargando] = useState(true);
-
-  // Inicializar sesión desde localStorage al cargar
-  useEffect(() => {
+  // Inicialización perezosa de la sesión sin efectos secundarios síncronos
+  const [usuario, setUsuario] = useState(() => {
     try {
       const usuarioGuardado = localStorage.getItem(USUARIO_KEY);
-      if (usuarioGuardado) {
-        setUsuario(JSON.parse(usuarioGuardado));
-      }
+      return usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
+    } catch (err) {
+      console.error("Error al leer sesión inicial:", err);
+      return null;
+    }
+  });
 
-      // Asegurar que existan los usuarios registrados iniciales
+  const [cargando] = useState(false);
+
+  // Inicialización de la lista de usuarios si no existe
+  useEffect(() => {
+    try {
       const usuariosRegistrados = localStorage.getItem(USUARIOS_REGISTRADOS_KEY);
       if (!usuariosRegistrados) {
         localStorage.setItem(USUARIOS_REGISTRADOS_KEY, JSON.stringify(usuariosIniciales));
       }
     } catch (error) {
-      console.error("Error al inicializar sesión en AuthContext:", error);
-      localStorage.removeItem(USUARIO_KEY);
-    } finally {
-      setCargando(false);
+      console.error("Error al inicializar lista de usuarios:", error);
     }
   }, []);
 
