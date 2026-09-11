@@ -102,3 +102,85 @@ export const eliminarSesionActual = () => {
     return { success: false, exito: false, mensaje: "No se pudo cerrar la sesión." };
   }
 };
+
+/**
+ * Registra un nuevo usuario en el sistema garantizando unicidad de correo electrónico
+ * insensible a mayúsculas/minúsculas, rol 'usuario' e inicio de sesión automático.
+ * @param {Object|string} datosOEmail 
+ * @param {string} [password] 
+ * @param {string} [nombreParam] 
+ * @returns {Object}
+ */
+export const registrarUsuario = (datosOEmail, password = "", nombreParam = "") => {
+  try {
+    let nombre = "";
+    let email = "";
+    let contrasena = "";
+
+    if (typeof datosOEmail === "object" && datosOEmail !== null) {
+      nombre = datosOEmail.nombre || "";
+      email = datosOEmail.email || "";
+      contrasena = datosOEmail.password || "";
+    } else {
+      email = datosOEmail || "";
+      contrasena = password || "";
+      nombre = nombreParam || (email ? email.split("@")[0] : "Usuario");
+    }
+
+    if (!nombre.trim()) {
+      return { success: false, exito: false, mensaje: "El nombre es obligatorio." };
+    }
+    if (!email.trim()) {
+      return { success: false, exito: false, mensaje: "El correo electrónico es obligatorio." };
+    }
+    if (!contrasena) {
+      return { success: false, exito: false, mensaje: "La contraseña es obligatoria." };
+    }
+
+    const emailNormalizado = email.trim().toLowerCase();
+    const usuarios = obtenerUsuarios();
+
+    // Verificación de email duplicado insensible a mayúsculas/minúsculas
+    const existeDuplicado = usuarios.some(
+      (u) => u.email.trim().toLowerCase() === emailNormalizado
+    );
+
+    if (existeDuplicado) {
+      return {
+        success: false,
+        exito: false,
+        mensaje: "El correo electrónico ya se encuentra registrado."
+      };
+    }
+
+    const nuevoUsuario = {
+      id: `user-${Date.now()}`,
+      nombre: nombre.trim(),
+      email: emailNormalizado,
+      password: String(contrasena),
+      rol: "usuario",
+      fechaRegistro: new Date().toISOString().split("T")[0]
+    };
+
+    const usuariosActualizados = [...usuarios, nuevoUsuario];
+    guardarUsuarios(usuariosActualizados);
+
+    // Iniciar sesión automáticamente sin guardar la contraseña en la copia de sesión
+    const sesionIniciada = guardarSesionActual(nuevoUsuario);
+
+    return {
+      success: true,
+      exito: true,
+      usuario: sesionIniciada,
+      usuarios: usuariosActualizados,
+      mensaje: "Cuenta creada con éxito. Sesión iniciada automáticamente."
+    };
+  } catch (error) {
+    console.error("Error al registrar usuario:", error);
+    return {
+      success: false,
+      exito: false,
+      mensaje: "Ocurrió un error inesperado durante el registro."
+    };
+  }
+};
