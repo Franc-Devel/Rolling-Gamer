@@ -294,3 +294,118 @@ export const eliminarUsuario = (idAEliminar, idUsuarioActivo = null) => {
     };
   }
 };
+
+/**
+ * Obtiene el mapa completo de listas de deseos indexadas por identificador de cuenta.
+ * @returns {Object}
+ */
+export const obtenerMapaWishlists = () => {
+  try {
+    const datos = localStorage.getItem(WISHLISTS_KEY);
+    return datos ? JSON.parse(datos) : {};
+  } catch (err) {
+    console.error("Error al leer mapa de wishlists:", err);
+    return {};
+  }
+};
+
+/**
+ * Persiste el mapa de listas de deseos por cuenta en localStorage.
+ * @param {Object} mapa 
+ */
+export const guardarMapaWishlists = (mapa) => {
+  try {
+    localStorage.setItem(WISHLISTS_KEY, JSON.stringify(mapa));
+  } catch (err) {
+    console.error("Error al guardar mapa de wishlists:", err);
+  }
+};
+
+/**
+ * Obtiene los identificadores de juegos en la lista de deseos de una cuenta específica.
+ * Garantiza ausencia de IDs duplicados.
+ * @param {string|null} usuarioId 
+ * @returns {Array<string>}
+ */
+export const obtenerWishlistDeCuenta = (usuarioId) => {
+  if (!usuarioId) return [];
+  const mapa = obtenerMapaWishlists();
+  const lista = Array.isArray(mapa[usuarioId]) ? mapa[usuarioId] : [];
+  // Garantizar sin duplicados
+  return Array.from(new Set(lista.map(String)));
+};
+
+/**
+ * Alterna el estado de un videojuego en la lista de deseos de un usuario.
+ * Si el usuario no está autenticado, devuelve requireAuth: true.
+ * Evita IDs duplicados y persiste el resultado por cuenta.
+ * @param {string|null} usuarioId 
+ * @param {string|number} juegoId 
+ * @returns {Object}
+ */
+export const alternarDeseo = (usuarioId, juegoId) => {
+  // Criterio de aceptación: Sin autenticación, alternar deseos devuelve requireAuth
+  if (!usuarioId) {
+    return {
+      success: false,
+      exito: false,
+      requireAuth: true,
+      isWishlisted: false,
+      wishlistIds: [],
+      mensaje: "Debes iniciar sesión para agregar videojuegos a tu lista de deseos."
+    };
+  }
+
+  if (!juegoId && juegoId !== 0) {
+    return {
+      success: false,
+      exito: false,
+      requireAuth: false,
+      isWishlisted: false,
+      mensaje: "Identificador de juego inválido."
+    };
+  }
+
+  const strJuegoId = String(juegoId);
+  const mapa = obtenerMapaWishlists();
+  const actuales = Array.isArray(mapa[usuarioId]) ? mapa[usuarioId].map(String) : [];
+
+  const yaExiste = actuales.includes(strJuegoId);
+  let nuevaLista = [];
+
+  if (yaExiste) {
+    nuevaLista = actuales.filter((id) => id !== strJuegoId);
+  } else {
+    // Garantiza lista sin duplicados
+    nuevaLista = Array.from(new Set([...actuales, strJuegoId]));
+  }
+
+  mapa[usuarioId] = nuevaLista;
+  guardarMapaWishlists(mapa);
+
+  const isWishlisted = !yaExiste;
+
+  return {
+    success: true,
+    exito: true,
+    requireAuth: false,
+    isWishlisted,
+    wishlistIds: nuevaLista,
+    mensaje: isWishlisted
+      ? "Videojuego agregado a tu lista de deseos."
+      : "Videojuego eliminado de tu lista de deseos."
+  };
+};
+
+/**
+ * Obtiene los objetos completos de videojuegos de la lista de deseos de un usuario.
+ * @param {string|null} usuarioId 
+ * @param {Array} catalogoProductos 
+ * @returns {Array}
+ */
+export const obtenerJuegosDeseados = (usuarioId, catalogoProductos = []) => {
+  if (!usuarioId) return [];
+  const ids = obtenerWishlistDeCuenta(usuarioId);
+  if (ids.length === 0 || !Array.isArray(catalogoProductos)) return [];
+  return catalogoProductos.filter((prod) => ids.includes(String(prod.id)));
+};
