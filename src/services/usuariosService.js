@@ -184,3 +184,55 @@ export const registrarUsuario = (datosOEmail, password = "", nombreParam = "") =
     };
   }
 };
+
+/**
+ * Autentica un usuario mediante sus credenciales.
+ * Verifica correo (insensible a mayúsculas) y contraseña,
+ * generando una sesión persistente desprovista de contraseñas.
+ * @param {string} email 
+ * @param {string} password 
+ * @returns {Object}
+ */
+export const autenticarUsuario = (email, password) => {
+  try {
+    if (!email || !password) {
+      return {
+        success: false,
+        exito: false,
+        mensaje: "Por favor proporciona correo electrónico y contraseña."
+      };
+    }
+
+    const emailNormalizado = email.trim().toLowerCase();
+    const listaUsuarios = obtenerUsuarios();
+
+    const usuarioEncontrado = listaUsuarios.find(
+      (u) => u.email.trim().toLowerCase() === emailNormalizado && u.password === password
+    );
+
+    if (!usuarioEncontrado) {
+      return {
+        success: false,
+        exito: false,
+        mensaje: "Credenciales inválidas. Verifica tu correo y contraseña."
+      };
+    }
+
+    // Persistir copia de sesión libre de contraseñas
+    const sesion = guardarSesionActual(usuarioEncontrado);
+
+    return {
+      success: true,
+      exito: true,
+      usuario: sesion,
+      mensaje: `¡Bienvenido de vuelta, ${sesion.nombre}!`
+    };
+  } catch (error) {
+    console.error("Error durante el inicio de sesión:", error);
+    return {
+      success: false,
+      exito: false,
+      mensaje: "Error inesperado al iniciar sesión."
+    };
+  }
+};
