@@ -8,10 +8,14 @@ import {
   registrarUsuario as registrarUsuarioServicio,
   autenticarUsuario,
   eliminarUsuario as eliminarUsuarioServicio,
+  obtenerWishlistDeCuenta,
+  alternarDeseo,
+  obtenerJuegosDeseados,
   USUARIOS_KEY,
   SESION_KEY,
   WISHLISTS_KEY
 } from "../services/usuariosService.js";
+import { obtenerProductos } from "../services/catalogoService.js";
 import usuariosIniciales from "../data/usuariosIniciales.js";
 
 const AuthContext = createContext();
@@ -24,6 +28,9 @@ export const AuthProvider = ({ children }) => {
   // Inicialización perezosa de usuarios registrados y sesión activa
   const [usuarios, setUsuarios] = useState(() => obtenerUsuarios());
   const [usuarioActual, setUsuarioActual] = useState(() => obtenerSesionActual());
+  const [wishlistIds, setWishlistIds] = useState(() =>
+    obtenerWishlistDeCuenta(obtenerSesionActual()?.id)
+  );
   const [cargando] = useState(false);
 
   // Asegurar consistencia de usuarios en localStorage al montar
@@ -35,6 +42,15 @@ export const AuthProvider = ({ children }) => {
       console.error("Error al sincronizar usuarios en AuthProvider:", error);
     }
   }, []);
+
+  // Sincronizar wishlist cuando cambia el usuario activo
+  useEffect(() => {
+    if (usuarioActual?.id) {
+      setWishlistIds(obtenerWishlistDeCuenta(usuarioActual.id));
+    } else {
+      setWishlistIds([]);
+    }
+  }, [usuarioActual]);
 
   /**
    * Inicia sesión verificando credenciales del usuario registrado.
@@ -67,6 +83,7 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(() => {
     const resultado = eliminarSesionActual();
     setUsuarioActual(null);
+    setWishlistIds([]);
     return resultado;
   }, []);
 
@@ -80,6 +97,53 @@ export const AuthProvider = ({ children }) => {
       setUsuarios(resultado.usuarios);
     }
     return resultado;
+  }, [usuarioActual]);
+
+  /**
+   * Comprueba si un juego se encuentra en la lista de deseos del usuario activo.
+   */
+  const isWishlisted = useCallback((juegoId) => {
+    if (!usuarioActual) return false;
+    return wishlistIds.includes(String(juegoId));
+  }, [usuarioActual, wishlistIds]);
+
+  /**
+   * Alterna un videojuego en la lista de deseos del usuario autenticado.
+   * Si no está autenticado, devuelve requireAuth: true.
+   */
+  const toggleWishlist = useCallback((juegoId) => {
+    if (!usuarioActual) {
+      return {
+        success: false,
+        exito: false,
+        requireAuth: true,
+        isWishlisted: false,
+        wishlistIds: [],
+        mensaje: "Debes iniciar sesión para gestionar tu lista de deseos."
+      };
+    }
+    const resultado = alternarDeseo(usuarioActual.id, juegoId);
+    if (resultado.success) {
+      setWishlistIds(resultado.wishlistIds);
+    }
+    return resultado;
+  }, [usuarioActual]);
+
+  /**
+   * Recupera los objetos de videojuegos en la lista de deseos de la cuenta activa.
+   */
+  const getWishlistJuegos = useCallback((catalogoOpcional) => {
+    if (!usuarioActual) return [];
+    let catalogo = catalogoOpcional;
+    if (!catalogo) {
+      try {
+        catalogo = obtenerProductos();
+      } catch (err) {
+        console.error("Error al obtener catálogo para wishlist:", err);
+        catalogo = [];
+      }
+    }
+    return obtenerJuegosDeseados(usuarioActual.id, catalogo);
   }, [usuarioActual]);
 
   /**
@@ -110,6 +174,10 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     borrarUsuario,
+    wishlistIds,
+    isWishlisted,
+    toggleWishlist,
+    getWishlistJuegos,
     loginRapido
   };
 
