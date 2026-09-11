@@ -1,97 +1,115 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import {
+  obtenerUsuarios,
+  obtenerSesionActual,
+  guardarSesionActual,
+  eliminarSesionActual,
+  registrarUsuario as registrarUsuarioServicio,
+  autenticarUsuario,
+  eliminarUsuario as eliminarUsuarioServicio,
+  USUARIOS_KEY,
+  SESION_KEY,
+  WISHLISTS_KEY
+} from "../services/usuariosService.js";
 import usuariosIniciales from "../data/usuariosIniciales.js";
 
 const AuthContext = createContext();
 
-export const USUARIO_KEY = "rollingGamer_usuario";
-export const USUARIOS_REGISTRADOS_KEY = "rollingGamer_usuariosRegistrados";
+export const USUARIO_KEY = SESION_KEY;
+export const USUARIOS_REGISTRADOS_KEY = USUARIOS_KEY;
+export { WISHLISTS_KEY };
 
 export const AuthProvider = ({ children }) => {
-  // Inicialización perezosa de la sesión sin efectos secundarios síncronos
-  const [usuario, setUsuario] = useState(() => {
-    try {
-      const usuarioGuardado = localStorage.getItem(USUARIO_KEY);
-      return usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
-    } catch (err) {
-      console.error("Error al leer sesión inicial:", err);
-      return null;
-    }
-  });
-
+  // Inicialización perezosa de usuarios registrados y sesión activa
+  const [usuarios, setUsuarios] = useState(() => obtenerUsuarios());
+  const [usuarioActual, setUsuarioActual] = useState(() => obtenerSesionActual());
   const [cargando] = useState(false);
 
-  // Inicialización de la lista de usuarios si no existe
+  // Asegurar consistencia de usuarios en localStorage al montar
   useEffect(() => {
     try {
-      const usuariosRegistrados = localStorage.getItem(USUARIOS_REGISTRADOS_KEY);
-      if (!usuariosRegistrados) {
-        localStorage.setItem(USUARIOS_REGISTRADOS_KEY, JSON.stringify(usuariosIniciales));
-      }
+      const lista = obtenerUsuarios();
+      setUsuarios(lista);
     } catch (error) {
-      console.error("Error al inicializar lista de usuarios:", error);
+      console.error("Error al sincronizar usuarios en AuthProvider:", error);
     }
   }, []);
 
+  /**
+   * Inicia sesión verificando credenciales del usuario registrado.
+   * Genera sesión limpia desprovista de contraseñas.
+   */
   const login = useCallback((email, password) => {
-    try {
-      const datosUsuarios = localStorage.getItem(USUARIOS_REGISTRADOS_KEY);
-      const listaUsuarios = datosUsuarios ? JSON.parse(datosUsuarios) : usuariosIniciales;
-
-      const usuarioEncontrado = listaUsuarios.find(
-        (u) => u.email.toLowerCase() === email.trim().toLowerCase() && u.password === password
-      );
-
-      if (!usuarioEncontrado) {
-        return { exito: false, mensaje: "Credenciales inválidas. Verifica tu correo y contraseña." };
-      }
-
-      const datosSesion = {
-        id: usuarioEncontrado.id,
-        nombre: usuarioEncontrado.nombre,
-        email: usuarioEncontrado.email,
-        rol: usuarioEncontrado.rol
-      };
-
-      setUsuario(datosSesion);
-      localStorage.setItem(USUARIO_KEY, JSON.stringify(datosSesion));
-
-      return { exito: true, usuario: datosSesion };
-    } catch (error) {
-      console.error("Error durante el inicio de sesión:", error);
-      return { exito: false, mensaje: "Error inesperado al iniciar sesión." };
+    const resultado = autenticarUsuario(email, password);
+    if (resultado.success) {
+      setUsuarioActual(resultado.usuario);
     }
+    return resultado;
   }, []);
 
+  /**
+   * Registra un nuevo usuario previniendo duplicados de email insensible a mayúsculas,
+   * asigna rol 'usuario', persiste en localStorage e inicia sesión de inmediato.
+   */
+  const register = useCallback((datosOEmail, password, nombre) => {
+    const resultado = registrarUsuarioServicio(datosOEmail, password, nombre);
+    if (resultado.success) {
+      setUsuarios(resultado.usuarios);
+      setUsuarioActual(resultado.usuario);
+    }
+    return resultado;
+  }, []);
+
+  /**
+   * Cierra la sesión activa eliminando los datos de localStorage.
+   */
   const logout = useCallback(() => {
-    setUsuario(null);
-    localStorage.removeItem(USUARIO_KEY);
+    const resultado = eliminarSesionActual();
+    setUsuarioActual(null);
+    return resultado;
   }, []);
 
-  // Función para acceso rápido demo
+  /**
+   * Da de baja a un usuario registrado. Impide eliminar la cuenta activa actual.
+   * La cuenta eliminada no podrá iniciar nueva sesión.
+   */
+  const borrarUsuario = useCallback((id) => {
+    const resultado = eliminarUsuarioServicio(id, usuarioActual?.id);
+    if (resultado.success) {
+      setUsuarios(resultado.usuarios);
+    }
+    return resultado;
+  }, [usuarioActual]);
+
+  /**
+   * Acceso rápido para pruebas y evaluación docente
+   */
   const loginRapido = useCallback((tipo) => {
-    const cuenta = usuariosIniciales.find((u) => u.rol === tipo);
+    const lista = obtenerUsuarios();
+    const cuenta = lista.find((u) => u.rol === tipo) || usuariosIniciales.find((u) => u.rol === tipo);
     if (cuenta) {
-      const datosSesion = {
-        id: cuenta.id,
-        nombre: cuenta.nombre,
-        email: cuenta.email,
-        rol: cuenta.rol
-      };
-      setUsuario(datosSesion);
-      localStorage.setItem(USUARIO_KEY, JSON.stringify(datosSesion));
-      return datosSesion;
+      const sesion = guardarSesionActual(cuenta);
+      setUsuarioActual(sesion);
+      return sesion;
     }
     return null;
   }, []);
 
+  const esAdmin = Boolean(usuarioActual && usuarioActual.rol === "admin");
+  const estaAutenticado = Boolean(usuarioActual);
+
   const value = {
-    usuario,
+    usuarios,
+    usuarioActual,
+    usuario: usuarioActual, // Compatibilidad retrospectiva con Card C03
     cargando,
-    esAdmin: Boolean(usuario && usuario.rol === "admin"),
-    estaAutenticado: Boolean(usuario),
+    esAdmin,
+    estaAutenticado,
     login,
+    register,
     logout,
+    borrarUsuario,
     loginRapido
   };
 
