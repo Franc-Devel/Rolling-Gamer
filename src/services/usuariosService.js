@@ -371,14 +371,9 @@ export const alternarDeseo = (usuarioId, juegoId) => {
   const actuales = Array.isArray(mapa[usuarioId]) ? mapa[usuarioId].map(String) : [];
 
   const yaExiste = actuales.includes(strJuegoId);
-  let nuevaLista = [];
-
-  if (yaExiste) {
-    nuevaLista = actuales.filter((id) => id !== strJuegoId);
-  } else {
-    // Garantiza lista sin duplicados
-    nuevaLista = Array.from(new Set([...actuales, strJuegoId]));
-  }
+  const nuevaLista = yaExiste
+    ? actuales.filter((id) => id !== strJuegoId)
+    : Array.from(new Set([...actuales, strJuegoId]));
 
   mapa[usuarioId] = nuevaLista;
   guardarMapaWishlists(mapa);

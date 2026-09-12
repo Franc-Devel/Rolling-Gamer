@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useCallback } from "react";
 import {
   obtenerUsuarios,
   obtenerSesionActual,
@@ -33,25 +33,6 @@ export const AuthProvider = ({ children }) => {
   );
   const [cargando] = useState(false);
 
-  // Asegurar consistencia de usuarios en localStorage al montar
-  useEffect(() => {
-    try {
-      const lista = obtenerUsuarios();
-      setUsuarios(lista);
-    } catch (error) {
-      console.error("Error al sincronizar usuarios en AuthProvider:", error);
-    }
-  }, []);
-
-  // Sincronizar wishlist cuando cambia el usuario activo
-  useEffect(() => {
-    if (usuarioActual?.id) {
-      setWishlistIds(obtenerWishlistDeCuenta(usuarioActual.id));
-    } else {
-      setWishlistIds([]);
-    }
-  }, [usuarioActual]);
-
   /**
    * Inicia sesión verificando credenciales del usuario registrado.
    * Genera sesión limpia desprovista de contraseñas.
@@ -60,6 +41,7 @@ export const AuthProvider = ({ children }) => {
     const resultado = autenticarUsuario(email, password);
     if (resultado.success) {
       setUsuarioActual(resultado.usuario);
+      setWishlistIds(obtenerWishlistDeCuenta(resultado.usuario.id));
     }
     return resultado;
   }, []);
@@ -73,6 +55,7 @@ export const AuthProvider = ({ children }) => {
     if (resultado.success) {
       setUsuarios(resultado.usuarios);
       setUsuarioActual(resultado.usuario);
+      setWishlistIds(obtenerWishlistDeCuenta(resultado.usuario.id));
     }
     return resultado;
   }, []);
@@ -155,6 +138,7 @@ export const AuthProvider = ({ children }) => {
     if (cuenta) {
       const sesion = guardarSesionActual(cuenta);
       setUsuarioActual(sesion);
+      setWishlistIds(obtenerWishlistDeCuenta(sesion.id));
       return sesion;
     }
     return null;
