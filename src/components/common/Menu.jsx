@@ -3,10 +3,11 @@ import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
+import Badge from "react-bootstrap/Badge";
 import { useAuth } from "../../context/AuthContext.jsx";
 
 const Menu = () => {
-  const { usuario, esAdmin, logout } = useAuth();
+  const { usuarioActual, esAdmin, logout, wishlistIds } = useAuth();
   const navigate = useNavigate();
 
   const handleCerrarSesion = () => {
@@ -54,8 +55,14 @@ const Menu = () => {
               <Nav.Link as={NavLink} to="/" end className="text-secondary">
                 <i className="bi bi-grid me-1"></i> Catálogo
               </Nav.Link>
-              <Nav.Link as={NavLink} to="/wishlist" className="text-secondary">
-                <i className="bi bi-heart me-1"></i> Deseos
+              <Nav.Link as={NavLink} to="/wishlist" className="text-secondary d-flex align-items-center">
+                <i className="bi bi-heart me-1"></i>
+                <span>Deseos</span>
+                {usuarioActual && wishlistIds && wishlistIds.length > 0 && (
+                  <Badge bg="danger" pill className="ms-1" style={{ fontSize: "0.65rem" }}>
+                    {wishlistIds.length}
+                  </Badge>
+                )}
               </Nav.Link>
               <Nav.Link as={NavLink} to="/about" className="text-secondary">
                 <i className="bi bi-people me-1"></i> Equipo
@@ -68,12 +75,12 @@ const Menu = () => {
             </Nav>
 
             <div className="d-flex align-items-center gap-3 mt-3 mt-lg-0">
-              {usuario ? (
+              {usuarioActual ? (
                 <div className="d-flex align-items-center gap-2">
                   <div className="text-end d-none d-sm-block">
-                    <div className="text-light small fw-bold">{usuario.nombre}</div>
+                    <div className="text-light small fw-bold">{usuarioActual.nombre}</div>
                     <span className={`badge ${esAdmin ? "bg-danger" : "bg-primary"} text-uppercase`} style={{ fontSize: "0.65rem" }}>
-                      {usuario.rol}
+                      {usuarioActual.rol}
                     </span>
                   </div>
                   <Button
