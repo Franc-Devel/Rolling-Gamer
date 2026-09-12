@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test:c03": "node scripts/verificarC03.js"
+    "test:c03": "node scripts/verificarC03.js",
+    "test:c04": "node scripts/verificarC04.js"
   },
   "dependencies": {
     "bootstrap": "^5.3.8",

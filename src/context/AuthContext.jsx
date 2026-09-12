@@ -1,97 +1,167 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useCallback } from "react";
+import {
+  obtenerUsuarios,
+  obtenerSesionActual,
+  guardarSesionActual,
+  eliminarSesionActual,
+  registrarUsuario as registrarUsuarioServicio,
+  autenticarUsuario,
+  eliminarUsuario as eliminarUsuarioServicio,
+  obtenerWishlistDeCuenta,
+  alternarDeseo,
+  obtenerJuegosDeseados,
+  USUARIOS_KEY,
+  SESION_KEY,
+  WISHLISTS_KEY
+} from "../services/usuariosService.js";
+import { obtenerProductos } from "../services/catalogoService.js";
 import usuariosIniciales from "../data/usuariosIniciales.js";
 
 const AuthContext = createContext();
 
-export const USUARIO_KEY = "rollingGamer_usuario";
-export const USUARIOS_REGISTRADOS_KEY = "rollingGamer_usuariosRegistrados";
+export const USUARIO_KEY = SESION_KEY;
+export const USUARIOS_REGISTRADOS_KEY = USUARIOS_KEY;
+export { WISHLISTS_KEY };
 
 export const AuthProvider = ({ children }) => {
-  // Inicialización perezosa de la sesión sin efectos secundarios síncronos
-  const [usuario, setUsuario] = useState(() => {
-    try {
-      const usuarioGuardado = localStorage.getItem(USUARIO_KEY);
-      return usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
-    } catch (err) {
-      console.error("Error al leer sesión inicial:", err);
-      return null;
-    }
-  });
-
+  // Inicialización perezosa de usuarios registrados y sesión activa
+  const [usuarios, setUsuarios] = useState(() => obtenerUsuarios());
+  const [usuarioActual, setUsuarioActual] = useState(() => obtenerSesionActual());
+  const [wishlistIds, setWishlistIds] = useState(() =>
+    obtenerWishlistDeCuenta(obtenerSesionActual()?.id)
+  );
   const [cargando] = useState(false);
 
-  // Inicialización de la lista de usuarios si no existe
-  useEffect(() => {
-    try {
-      const usuariosRegistrados = localStorage.getItem(USUARIOS_REGISTRADOS_KEY);
-      if (!usuariosRegistrados) {
-        localStorage.setItem(USUARIOS_REGISTRADOS_KEY, JSON.stringify(usuariosIniciales));
-      }
-    } catch (error) {
-      console.error("Error al inicializar lista de usuarios:", error);
-    }
-  }, []);
-
+  /**
+   * Inicia sesión verificando credenciales del usuario registrado.
+   * Genera sesión limpia desprovista de contraseñas.
+   */
   const login = useCallback((email, password) => {
-    try {
-      const datosUsuarios = localStorage.getItem(USUARIOS_REGISTRADOS_KEY);
-      const listaUsuarios = datosUsuarios ? JSON.parse(datosUsuarios) : usuariosIniciales;
-
-      const usuarioEncontrado = listaUsuarios.find(
-        (u) => u.email.toLowerCase() === email.trim().toLowerCase() && u.password === password
-      );
-
-      if (!usuarioEncontrado) {
-        return { exito: false, mensaje: "Credenciales inválidas. Verifica tu correo y contraseña." };
-      }
-
-      const datosSesion = {
-        id: usuarioEncontrado.id,
-        nombre: usuarioEncontrado.nombre,
-        email: usuarioEncontrado.email,
-        rol: usuarioEncontrado.rol
-      };
-
-      setUsuario(datosSesion);
-      localStorage.setItem(USUARIO_KEY, JSON.stringify(datosSesion));
-
-      return { exito: true, usuario: datosSesion };
-    } catch (error) {
-      console.error("Error durante el inicio de sesión:", error);
-      return { exito: false, mensaje: "Error inesperado al iniciar sesión." };
+    const resultado = autenticarUsuario(email, password);
+    if (resultado.success) {
+      setUsuarioActual(resultado.usuario);
+      setWishlistIds(obtenerWishlistDeCuenta(resultado.usuario.id));
     }
+    return resultado;
   }, []);
 
+  /**
+   * Registra un nuevo usuario previniendo duplicados de email insensible a mayúsculas,
+   * asigna rol 'usuario', persiste en localStorage e inicia sesión de inmediato.
+   */
+  const register = useCallback((datosOEmail, password, nombre) => {
+    const resultado = registrarUsuarioServicio(datosOEmail, password, nombre);
+    if (resultado.success) {
+      setUsuarios(resultado.usuarios);
+      setUsuarioActual(resultado.usuario);
+      setWishlistIds(obtenerWishlistDeCuenta(resultado.usuario.id));
+    }
+    return resultado;
+  }, []);
+
+  /**
+   * Cierra la sesión activa eliminando los datos de localStorage.
+   */
   const logout = useCallback(() => {
-    setUsuario(null);
-    localStorage.removeItem(USUARIO_KEY);
+    const resultado = eliminarSesionActual();
+    setUsuarioActual(null);
+    setWishlistIds([]);
+    return resultado;
   }, []);
 
-  // Función para acceso rápido demo
-  const loginRapido = useCallback((tipo) => {
-    const cuenta = usuariosIniciales.find((u) => u.rol === tipo);
-    if (cuenta) {
-      const datosSesion = {
-        id: cuenta.id,
-        nombre: cuenta.nombre,
-        email: cuenta.email,
-        rol: cuenta.rol
+  /**
+   * Da de baja a un usuario registrado. Impide eliminar la cuenta activa actual.
+   * La cuenta eliminada no podrá iniciar nueva sesión.
+   */
+  const borrarUsuario = useCallback((id) => {
+    const resultado = eliminarUsuarioServicio(id, usuarioActual?.id);
+    if (resultado.success) {
+      setUsuarios(resultado.usuarios);
+    }
+    return resultado;
+  }, [usuarioActual]);
+
+  /**
+   * Comprueba si un juego se encuentra en la lista de deseos del usuario activo.
+   */
+  const isWishlisted = useCallback((juegoId) => {
+    if (!usuarioActual) return false;
+    return wishlistIds.includes(String(juegoId));
+  }, [usuarioActual, wishlistIds]);
+
+  /**
+   * Alterna un videojuego en la lista de deseos del usuario autenticado.
+   * Si no está autenticado, devuelve requireAuth: true.
+   */
+  const toggleWishlist = useCallback((juegoId) => {
+    if (!usuarioActual) {
+      return {
+        success: false,
+        exito: false,
+        requireAuth: true,
+        isWishlisted: false,
+        wishlistIds: [],
+        mensaje: "Debes iniciar sesión para gestionar tu lista de deseos."
       };
-      setUsuario(datosSesion);
-      localStorage.setItem(USUARIO_KEY, JSON.stringify(datosSesion));
-      return datosSesion;
+    }
+    const resultado = alternarDeseo(usuarioActual.id, juegoId);
+    if (resultado.success) {
+      setWishlistIds(resultado.wishlistIds);
+    }
+    return resultado;
+  }, [usuarioActual]);
+
+  /**
+   * Recupera los objetos de videojuegos en la lista de deseos de la cuenta activa.
+   */
+  const getWishlistJuegos = useCallback((catalogoOpcional) => {
+    if (!usuarioActual) return [];
+    let catalogo = catalogoOpcional;
+    if (!catalogo) {
+      try {
+        catalogo = obtenerProductos();
+      } catch (err) {
+        console.error("Error al obtener catálogo para wishlist:", err);
+        catalogo = [];
+      }
+    }
+    return obtenerJuegosDeseados(usuarioActual.id, catalogo);
+  }, [usuarioActual]);
+
+  /**
+   * Acceso rápido para pruebas y evaluación docente
+   */
+  const loginRapido = useCallback((tipo) => {
+    const lista = obtenerUsuarios();
+    const cuenta = lista.find((u) => u.rol === tipo) || usuariosIniciales.find((u) => u.rol === tipo);
+    if (cuenta) {
+      const sesion = guardarSesionActual(cuenta);
+      setUsuarioActual(sesion);
+      setWishlistIds(obtenerWishlistDeCuenta(sesion.id));
+      return sesion;
     }
     return null;
   }, []);
 
+  const esAdmin = Boolean(usuarioActual && usuarioActual.rol === "admin");
+  const estaAutenticado = Boolean(usuarioActual);
+
   const value = {
-    usuario,
+    usuarios,
+    usuarioActual,
+    usuario: usuarioActual, // Compatibilidad retrospectiva con Card C03
     cargando,
-    esAdmin: Boolean(usuario && usuario.rol === "admin"),
-    estaAutenticado: Boolean(usuario),
+    esAdmin,
+    estaAutenticado,
     login,
+    register,
     logout,
+    borrarUsuario,
+    wishlistIds,
+    isWishlisted,
+    toggleWishlist,
+    getWishlistJuegos,
     loginRapido
   };
 

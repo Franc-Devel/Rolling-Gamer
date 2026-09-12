@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
@@ -10,13 +10,17 @@ import Form from "react-bootstrap/Form";
 import Alert from "react-bootstrap/Alert";
 import { useProductos } from "../../context/ProductosContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useUIModal } from "../../context/UIModalContext.jsx";
 
 const DetalleDeProducto = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { buscarProducto, agregarResena } = useProductos();
-  const { usuario } = useAuth();
+  const { usuario, isWishlisted, toggleWishlist } = useAuth();
+  const { abrirModal, mostrarAlerta } = useUIModal();
 
   const juego = buscarProducto(id);
+  const estaEnWishlist = juego ? isWishlisted(juego.id) : false;
 
   const [autor, setAutor] = useState(usuario ? usuario.nombre : "");
   const [comentario, setComentario] = useState("");
@@ -126,8 +130,29 @@ const DetalleDeProducto = () => {
               <Button variant="primary" size="lg" className="w-100 epic-btn-primary fw-bold mb-2">
                 <i className="bi bi-cart-plus me-2"></i> Añadir al Carrito
               </Button>
-              <Button as={Link} to="/wishlist" variant="outline-secondary" className="w-100">
-                <i className="bi bi-heart me-2"></i> Guardar en Deseos
+              <Button
+                variant={estaEnWishlist ? "outline-danger" : "outline-secondary"}
+                className="w-100 d-flex align-items-center justify-content-center gap-2"
+                onClick={() => {
+                  const res = toggleWishlist(juego.id);
+                  if (res.requireAuth) {
+                    abrirModal({
+                      titulo: "Identificación Requerida",
+                      mensaje: "Debes iniciar sesión con tu cuenta para guardar títulos en tu lista de deseos personal.",
+                      tipo: "confirmacion",
+                      textoConfirmar: "Ir a Iniciar Sesión",
+                      textoCancelar: "Más tarde",
+                      onConfirmar: () => navigate("/login")
+                    });
+                    return;
+                  }
+                  if (res.success || res.exito) {
+                    mostrarAlerta(res.mensaje, res.isWishlisted ? "exito" : "info");
+                  }
+                }}
+              >
+                <i className={`bi ${estaEnWishlist ? "bi-heart-fill text-danger" : "bi-heart"}`}></i>
+                <span>{estaEnWishlist ? "En tu Lista de Deseos (Quitar)" : "Guardar en Deseos"}</span>
               </Button>
             </div>
           </div>
