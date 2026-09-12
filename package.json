@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test:c03": "node scripts/verificarC03.js",
-    "test:c04": "node scripts/verificarC04.js"
+    "test:c04": "node scripts/verificarC04.js",
+    "test:c05": "node scripts/verificarC05.js"
   },
   "dependencies": {
     "bootstrap": "^5.3.8",

@@ -5,9 +5,7 @@ import "bootstrap-icons/font/bootstrap-icons.min.css";
 import "./index.css";
 import App from "./App.jsx";
 
-const rootElement = document.getElementById("root");
-
-createRoot(rootElement).render(
+createRoot(document.getElementById("root")).render(
   <StrictMode>
     <App />
   </StrictMode>
